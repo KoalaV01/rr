@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>หัวใจตรงกลางจอ พร้อมเพลง และข้อความทิ้งท้าย</title>
+  <style>
+    html, body {
+      margin: 0; padding: 0; height: 100%;
+      background: white;
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      position: relative;
+    }
+    canvas {
+      position: fixed;
+      top: 0; left: 0; z-index: 0;
+      width: 100%; height: 100%;
+    }
+    .heart-btn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5em;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #e91e63;
+      user-select: none;
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      transition: transform 0.3s ease;
+    }
+    .heart-btn:hover {
+      transform: translate(-50%, -50%) scale(1.3);
+    }
+    .photos {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      max-width: 860px;
+      justify-content: center;
+      align-items: center;
+      z-index: 5;
+    }
+    img.photo {
+      max-width: 180px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.8);
+      user-select: none;
+      opacity: 0;
+      transition: opacity 2.5s ease;
+      pointer-events: none;
+    }
+    img.photo.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .final-message {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 2em;
+      color: #e91e63;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 3s ease;
+      user-select: none;
+      z-index: 6;
+    }
+    .final-message.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <button class="heart-btn" aria-label="กดเพื่อแสดงรูปภาพ">❤️</button>
+
+  <div class="photos" aria-label="รูปคนพิเศษ">
+    <img src="6cf17ee3-5672-439b-b1ee-59487c599a8e.jpg" alt="รูปที่ 1" class="photo" />
+    <img src="ae07ee05-fa60-4858-a746-ad44f082f938.jpg" alt="รูปที่ 2" class="photo" />
+    <img src="7cfb9f5c-0058-4a4c-9d5e-7693422479ae.jpg" alt="รูปที่ 3" class="photo" />
+    <img src="67b4d745-ce33-497a-bfb7-f033d1b7c52b.jpg" alt="รูปที่ 4" class="photo" />
+    <img src="c27e0b03-4188-41bd-997b-ecee828525cf.jpg" alt="รูปที่ 5" class="photo" />
+    <img src="6a3e5e8f-6015-452e-bfda-97f1a1dced56.jpg" alt="รูปที่ 6" class="photo" />
+    <img src="d25ad8b7-439b-43c5-9128-e6ef81b78fd7.jpg" alt="รูปที่ 7" class="photo" />
+    <img src="9f36d884-9715-4a1f-a0b6-751fe9dc02e4.jpg" alt="รูปที่ 8" class="photo" />
+  </div>
+
+  <div class="final-message" aria-live="polite" role="alert">
+    รักน้าาา ❤️
+  </div>
+
+<script>
+  // พลุชมพูบนพื้นขาว
+  const canvas = document.getElementById("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  let fireworks = [];
+
+  function random(min, max) {
+    return Math.random() * (max - min) + min;
+  }
+
+  class Firework {
+    constructor() {
+      this.x = random(100, canvas.width - 100);
+      this.y = canvas.height;
+      this.targetY = random(100, canvas.height / 2);
+      this.color = `rgba(255,105,180, 0.9)`;
+      this.radius = 2;
+      this.exploded = false;
+      this.particles = [];
+    }
+
+    update() {
+      if (!this.exploded) {
+        this.y -= 5;
+        if (this.y <= this.targetY) {
+          this.exploded = true;
+          for (let i = 0; i < 100; i++) {
+            this.particles.push(new Particle(this.x, this.y, this.color));
+          }
+        }
+      } else {
+        this.particles.forEach(p => p.update());
+      }
+    }
+
+    draw() {
+      if (!this.exploded) {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      } else {
+        this.particles.forEach(p => p.draw());
+      }
+    }
+  }
+
+  class Particle {
+    constructor(x, y, color) {
+      this.x = x;
+      this.y = y;
+      this.vx = random(-3, 3);
+      this.vy = random(-3, 3);
+      this.alpha = 1;
+      this.color = color;
+    }
+
+    update() {
+      this.x += this.vx;
+      this.y += this.vy;
+      this.alpha -= 0.02;
+    }
+
+    draw() {
+      ctx.globalAlpha = this.alpha;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+      ctx.fillStyle = this.color;
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function animate() {
+    ctx.fillStyle = "rgba(255,255,255,1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (Math.random() < 0.05) {
+      fireworks.push(new Firework());
+    }
+
+    fireworks.forEach(f => {
+      f.update();
+      f.draw();
+    });
+
+    fireworks = fireworks.filter(f => !f.exploded || f.particles.some(p => p.alpha > 0));
+
+    requestAnimationFrame(animate);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  });
+
+  // สร้าง Audio object
+  const audio = new Audio('SARAN - ผมมีดอกไม้ (Flower) ft. 2K.mp3'); // เปลี่ยนชื่อไฟล์เป็นไฟล์เพลงของคุณ
+  audio.loop = true;
+
+  const heartBtn = document.querySelector('.heart-btn');
+  const photos = document.querySelectorAll('.photo');
+  const finalMessage = document.querySelector('.final-message');
+
+  heartBtn.addEventListener('click', () => {
+    heartBtn.style.display = 'none'; // ซ่อนหัวใจ
+    audio.play().catch(e => {
+      console.log('ไม่สามารถเล่นเพลงอัตโนมัติ:', e);
+    });
+
+    photos.forEach((photo, i) => {
+      setTimeout(() => {
+        photo.classList.add('show');
+      }, i * 700);  // โผล่ช้าลง 700ms ต่อรูป
+    });
+
+    // แสดงข้อความทิ้งท้ายหลังรูปทั้งหมดโผล่แล้ว (700ms * จำนวนรูป)
+    setTimeout(() => {
+      finalMessage.classList.add('show');
+    }, photos.length * 700 + 500); // +500ms เล็กน้อยหน่วงก่อนโชว์ข้อความ
+  });
+</script>
+
+</body>
+</html>
